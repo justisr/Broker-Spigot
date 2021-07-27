@@ -29,27 +29,27 @@ Remember to wait until all plugins have loaded in and registered their implement
 As a caller attempting to buy/sell some in game items, you might create methods similar to the following for initiating transactions:
 ```java
 
-	Optional<TransactionRecord<ItemStack>> buy(Player player, ItemStack item, int volume) {
-		Optional<PurchaseMediator<ItemStack>> mediator = BrokerAPI.current().forPurchase(player.getUniqueId(), player.getWorld().getUID(), item);
-		if (mediator.isEmpty()) return Optional.empty(); // No broker installed for this data set
-		TransactionRecord<ItemStack> transaction = mediator.get().buy(volume); // runs the pre-transaction event
-		if (!transaction.isSuccess()) return Optional.of(transaction); // return the failed transaction
-		withdraw(player, transaction.value()); // <-- your own code
-		giveItems(player, item, transaction.volume()); // <-- your own code
-		transaction.complete(); // runs the post-transaction event and informs the Broker of the transaction's success
-		return Optional.of(transaction); // return successful transaction, after having completed
-	}
-	
-	Optional<TransactionRecord<ItemStack>> sell(Player player, ItemStack item, int volume) {
-		Optional<SaleMediator<ItemStack>> mediator = BrokerAPI.current().forSale(player.getUniqueId(), player.getWorld().getUID(), item);
-		if (mediator.isEmpty()) return Optional.empty(); // No broker installed for this data set
-		TransactionRecord<ItemStack> transaction = mediator.get().sell(volume); // runs the pre-transaction event
-		if (!transaction.isSuccess()) return Optional.of(transaction); // return the failed transaction
-		deposit(player, transaction.value()); // <-- your own code
-		takeItems(player, item, transaction.volume()); // <-- your own code
-		transaction.complete(); // runs the post-transaction event and informs the Broker of the transaction's success
-		return Optional.of(transaction); // return successful transaction, after having completed
-	}
+Optional<TransactionRecord<ItemStack>> buy(Player player, ItemStack item, int volume) {
+	Optional<PurchaseMediator<ItemStack>> mediator = BrokerAPI.current().forPurchase(player.getUniqueId(), player.getWorld().getUID(), item);
+	if (mediator.isEmpty()) return Optional.empty(); // No broker installed for this data set
+	TransactionRecord<ItemStack> transaction = mediator.get().buy(volume); // runs the pre-transaction event
+	if (!transaction.isSuccess()) return Optional.of(transaction); // return the failed transaction
+	withdraw(player, transaction.value()); // <-- your own code
+	giveItems(player, item, transaction.volume()); // <-- your own code
+	transaction.complete(); // runs the post-transaction event and informs the Broker of the transaction's success
+	return Optional.of(transaction); // return successful transaction, after having completed
+}
+
+Optional<TransactionRecord<ItemStack>> sell(Player player, ItemStack item, int volume) {
+	Optional<SaleMediator<ItemStack>> mediator = BrokerAPI.current().forSale(player.getUniqueId(), player.getWorld().getUID(), item);
+	if (mediator.isEmpty()) return Optional.empty(); // No broker installed for this data set
+	TransactionRecord<ItemStack> transaction = mediator.get().sell(volume); // runs the pre-transaction event
+	if (!transaction.isSuccess()) return Optional.of(transaction); // return the failed transaction
+	deposit(player, transaction.value()); // <-- your own code
+	takeItems(player, item, transaction.volume()); // <-- your own code
+	transaction.complete(); // runs the post-transaction event and informs the Broker of the transaction's success
+	return Optional.of(transaction); // return successful transaction, after having completed
+}
 
 ```
 It's important to note that the Broker implementation does **not** handle depositing/withdrawing player balances or removing/providing the items to the player. This is in order to ensure that the functionality that callers may offer is not being shortsightedly limited. For instance, we wouldn't want the Broker to be hastily attempting to remove items from a player's inventory when actually, the item was automatically sold by a special kind of hopper or pickaxe or quarry, etc. Thus, callers must handle balance and inventory management on their end.
