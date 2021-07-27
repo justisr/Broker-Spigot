@@ -1,0 +1,19 @@
+#################
+# - BrokerAPI - # plugin.yml
+#################
+name: Broker
+description: An API for interacting with a server's marketplace(s) without knowing the specific implementation.
+author: Justis R
+main: com.gmail.justisroot.broker.SpigotInitializer
+load: STARTUP
+version: ${project.version}
+api-version: 1.13
+commands:
+  brokerapi:
+    description: Displays information about Vault 
+    aliases: [broker]
+    permission: broker.admin
+  permissions:
+    brokerapi.admin:
+      description: Grants access to administrative commands
+      default: OP
