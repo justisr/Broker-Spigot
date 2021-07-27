@@ -56,12 +56,14 @@ public final class GUIShopBroker extends ItemBroker {
 
 	@Override
 	public Optional<BigDecimal> getBuyPrice(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		return Optional.ofNullable(GuiShopAPI.getBuyPrice(item, amount));
+		BigDecimal value = GuiShopAPI.getBuyPrice(item, amount);
+		return Optional.ofNullable(value.doubleValue() > 0 ? value : null);
 	}
 
 	@Override
 	public Optional<BigDecimal> getSellPrice(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		return Optional.ofNullable(GuiShopAPI.getSellPrice(item, amount));
+		BigDecimal value = GuiShopAPI.getSellPrice(item, amount);
+		return Optional.ofNullable(value.doubleValue() > 0 ? value : null);
 	}
 
 	@Override

@@ -67,7 +67,9 @@ public final class ConjurateShopBroker extends ItemBroker {
 	@Override
 	public Optional<BigDecimal> getSellPrice(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		if (!canBeSold(playerID, worldID, item)) return Optional.empty();
-		return Optional.of(new BigDecimal(Manager.get().getWorth(item) * amount));
+		double value = Manager.get().getWorth(item) * amount;
+		if (value <= 0) return Optional.empty();
+		return Optional.of(new BigDecimal(value));
 	}
 
 	@Override
@@ -96,7 +98,7 @@ public final class ConjurateShopBroker extends ItemBroker {
 
 	@Override
 	public boolean handlesSales(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return Manager.get().getWorth(item) > 0;
+		return true;
 	}
 
 }

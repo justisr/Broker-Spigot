@@ -69,7 +69,7 @@ public final class EssentialsXBroker extends ItemBroker {
 	@Override
 	public Optional<BigDecimal> getSellPrice(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		BigDecimal w = def.getPrice(item);
-		if (w == null) return Optional.empty();
+		if (w == null || w.doubleValue() <= 0) return Optional.empty();
 		return Optional.of(w.multiply(BigDecimal.valueOf(amount)));
 	}
 

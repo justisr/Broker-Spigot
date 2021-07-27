@@ -60,16 +60,16 @@ public final class ShopGUIPlusBroker extends ItemBroker {
 		if (!handlesPurchases(playerID, worldID, item)) return false;
 		Player player = Bukkit.getPlayer(playerID.get());
 		if (player == null) return false;
-		if (ShopGuiPlusApi.getItemStackPriceBuy(player, item) < 0) return false;
-		return true;
+		if (ShopGuiPlusApi.getItemStackPriceBuy(player, item) > 0) return true;
+		return false;
 	}
 
 	@Override
 	public boolean canBeSold(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
 		if (!handlesPurchases(playerID, worldID, item)) return false;
 		Player player = Bukkit.getPlayer(playerID.get());
-		if (ShopGuiPlusApi.getItemStackPriceSell(player, item) < 0) return false;
-		return true;
+		if (ShopGuiPlusApi.getItemStackPriceSell(player, item) > 0) return true;
+		return false;
 	}
 
 	@Override
@@ -77,7 +77,9 @@ public final class ShopGUIPlusBroker extends ItemBroker {
 		if (playerID.isEmpty()) return Optional.empty();
 		Player player = Bukkit.getPlayer(playerID.get());
 		if (player == null) return Optional.empty();
-		return Optional.of(new BigDecimal(ShopGuiPlusApi.getItemStackPriceBuy(player, item)).multiply(new BigDecimal(amount)));
+		BigDecimal value = new BigDecimal(ShopGuiPlusApi.getItemStackPriceBuy(player, item));
+		if (value.doubleValue() <= 0) return Optional.empty();
+		return Optional.of(value.multiply(new BigDecimal(amount)));
 	}
 
 	@Override
@@ -85,7 +87,9 @@ public final class ShopGUIPlusBroker extends ItemBroker {
 		if (playerID.isEmpty()) return Optional.empty();
 		Player player = Bukkit.getPlayer(playerID.get());
 		if (player == null) return Optional.empty();
-		return Optional.of(new BigDecimal(ShopGuiPlusApi.getItemStackPriceSell(player, item)).multiply(new BigDecimal(amount)));
+		BigDecimal value = new BigDecimal(ShopGuiPlusApi.getItemStackPriceSell(player, item));
+		if (value.doubleValue() <= 0) return Optional.empty();
+		return Optional.of(value.multiply(new BigDecimal(amount)));
 	}
 
 	@Override

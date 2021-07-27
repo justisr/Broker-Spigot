@@ -92,6 +92,7 @@ public final class ClipAutoSellBroker extends ItemBroker {
 			shop = SellHandler.getPermShop(player);
 		if (shop == null) return Optional.empty();
 		for (Entry<ItemStack, Double> compare : shop.getPrices().entrySet()) {
+			if (compare.getValue() <= 0) continue;
 			ItemStack converted = compare.getKey().clone();
 			Material convertedMat = Bukkit.getUnsafe().fromLegacy(converted.getType());
 			if (convertedMat != converted.getType()) converted.setType(convertedMat);
