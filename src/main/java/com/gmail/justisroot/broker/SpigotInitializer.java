@@ -130,7 +130,7 @@ public final class SpigotInitializer extends JavaPlugin implements Listener {
 		register(new ClipAutoSellBroker()); // https://wiki.helpch.at/clips-plugins/autosell
 
 		// Register default org.bukkit.permissions.Permission Brokers
-		register(new BuyPermissionsBroker()); // https://www.spigotmc.org/resources/buypermissions.52557/
+		register(new BuyPermissionsBroker()); // https://www.spigotmc.org/resources/52557/
 
 		// Register other default Brokers
 
