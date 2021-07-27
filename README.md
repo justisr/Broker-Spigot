@@ -112,7 +112,6 @@ For shading bstats and the API into your compiled jar, add them as dependencies.
 	<version>master-SNAPSHOT</version>
 	<scope>compile</scope>
 </dependency>
-
 ```
 Then include those dependencies in your shade plugin configuration.
 ```
