@@ -38,14 +38,12 @@ import com.gmail.justisroot.broker.TransactionRecord.TransactionRecordBuilder;
  */
 public final class EssentialsXBroker extends ItemBroker {
 
-	private Worth worth;
-	private Essentials ess;
+	private Definitions def;
 
 	public EssentialsXBroker() {
 		super("com.earth2me.essentials.Essentials", "com.earth2me.essentials.Worth", "com.earth2me.essentials.IEssentials");
 		if (!isAvailable()) return;
-		ess = (Essentials) plugin();
-		worth = ess.getWorth();
+		def = new Definitions(this);
 	}
 
 	@Override
@@ -60,7 +58,7 @@ public final class EssentialsXBroker extends ItemBroker {
 
 	@Override
 	public boolean canBeSold(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return worth.getPrice(ess, item) != null;
+		return def.getPrice(item) != null;
 	}
 
 	@Override
@@ -70,7 +68,7 @@ public final class EssentialsXBroker extends ItemBroker {
 
 	@Override
 	public Optional<BigDecimal> getSellPrice(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		BigDecimal w = worth.getPrice(ess, item);
+		BigDecimal w = def.getPrice(item);
 		if (w == null) return Optional.empty();
 		return Optional.of(w.multiply(BigDecimal.valueOf(amount)));
 	}
@@ -91,7 +89,7 @@ public final class EssentialsXBroker extends ItemBroker {
 
 	@Override
 	public String getDisplayName(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return ess.getItemDb().name(item);
+		return def.ess.getItemDb().name(item);
 	}
 
 	@Override
@@ -102,5 +100,20 @@ public final class EssentialsXBroker extends ItemBroker {
 	@Override
 	public boolean handlesSales(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
 		return true;
+	}
+
+	private static class Definitions {
+
+		private Essentials ess;
+		private Worth worth;
+
+		private Definitions(EssentialsXBroker broker) {
+			ess = (Essentials) broker.plugin();
+			worth = ess.getWorth();
+		}
+
+		private BigDecimal getPrice(ItemStack item) {
+			return worth.getPrice(ess, item);
+		}
 	}
 }
