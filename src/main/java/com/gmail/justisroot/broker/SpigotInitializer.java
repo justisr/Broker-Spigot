@@ -81,12 +81,10 @@ public final class SpigotInitializer extends JavaPlugin implements Listener {
 	 */
 	public Map<String, Set<String>> available() {
 		Map<String, Set<String>> available = new HashMap<>();
-		for (SimilarBrokers<?> similar : api.brokers().values()) {
-			for (PrioritizedBroker<?, ?> i : similar.prioritized()) {
-				if (available.containsKey(i.get().getProvider())) {
-					available.get(i.get().getProvider()).add(i.get().getId());
-				} else available.put(i.get().getProvider(), Sets.newHashSet(i.get().getId()));
-			}
+		for (PrioritizedBroker<?, ?> i : api.brokers()) {
+			if (available.containsKey(i.get().getProvider())) {
+				available.get(i.get().getProvider()).add(i.get().getId());
+			} else available.put(i.get().getProvider(), Sets.newHashSet(i.get().getId()));
 		}
 		return available;
 	}
@@ -97,8 +95,7 @@ public final class SpigotInitializer extends JavaPlugin implements Listener {
 		api.eventService().setUnregistrationHandler(info -> pm.callEvent(new BrokerUnregistrationEvent(info)));
 		api.eventService().setTransactionHandler((info, record) -> pm.callEvent(new TransactionEvent(info, record)));
 		api.eventService().setPreProcessTransactionHandler((info, record) -> {
-			@SuppressWarnings("unchecked")
-			TransactionPreProcessEvent<?> event = new TransactionPreProcessEvent<>(info, record);
+			TransactionPreProcessEvent event = new TransactionPreProcessEvent(info, record);
 			pm.callEvent(event);
 			return event.isCancelled();
 		});

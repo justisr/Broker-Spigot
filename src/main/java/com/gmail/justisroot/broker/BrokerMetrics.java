@@ -42,7 +42,7 @@ abstract class BrokerMetrics {
 	static {
 		CHARTS.add(new DrilldownPie("broker_implementations", () -> {
 			Map<String, Map<String, Integer>> data = new HashMap<>();
-			for (Entry<Class<?>, SimilarBrokers<?>> entry : BrokerAPI.current().brokers().entrySet()) {
+			for (Entry<Class<?>, SimilarBrokers<?>> entry : BrokerAPI.current().brokerMap().entrySet()) {
 				Map<String, Integer> meta = new HashMap<>();
 				Iterator<?> iterator = entry.getValue().iterator();
 				while (iterator.hasNext()) meta.put(((PrioritizedBroker<?, ?>) iterator.next()).get().getProvider(), 1);
@@ -52,7 +52,7 @@ abstract class BrokerMetrics {
 		}));
 		CHARTS.add(new SingleLineChart("broker_count", () -> {
 			int count = 0;
-			for (Entry<Class<?>, SimilarBrokers<?>> entry : BrokerAPI.current().brokers().entrySet()) {
+			for (Entry<Class<?>, SimilarBrokers<?>> entry : BrokerAPI.current().brokerMap().entrySet()) {
 				Iterator<?> iterator = entry.getValue().iterator();
 				while (iterator.hasNext()) {
 					iterator.next();

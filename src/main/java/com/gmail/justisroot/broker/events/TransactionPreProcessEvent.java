@@ -28,12 +28,12 @@ import org.bukkit.event.HandlerList;
 import com.gmail.justisroot.broker.BrokerInfo;
 import com.gmail.justisroot.broker.PreProcessTransactionRecord;
 
-public class TransactionPreProcessEvent<T> extends BrokerEvent implements Cancellable {
+public class TransactionPreProcessEvent extends BrokerEvent implements Cancellable {
 
-	private final PreProcessTransactionRecord<T> record;
+	private final PreProcessTransactionRecord record;
 	private boolean cancelled;
 
-	public TransactionPreProcessEvent(BrokerInfo info, PreProcessTransactionRecord<T> record) {
+	public TransactionPreProcessEvent(BrokerInfo info, PreProcessTransactionRecord record) {
 		super(info);
 		this.record = record;
 	}
@@ -42,7 +42,7 @@ public class TransactionPreProcessEvent<T> extends BrokerEvent implements Cancel
 	 * Get the PreProcessTransactionRecord for this transaction<br>
 	 * @return a PreProcessTransactionRecord for this transaction
 	 */
-	public PreProcessTransactionRecord<T> getRecord() {
+	public PreProcessTransactionRecord getRecord() {
 		return this.record;
 	}
 
