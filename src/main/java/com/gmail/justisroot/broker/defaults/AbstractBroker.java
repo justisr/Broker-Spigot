@@ -53,17 +53,21 @@ public abstract class AbstractBroker<T> implements Broker<T> {
 		return plugin;
 	}
 
+	protected void setUnavailable() {
+		available = false;
+	}
+
 	/**
 	 * Always check if your required library packages are available <b>before</b> attempting to access them
 	 * @return true if the provided packages are available and the providing plugin is enabled, false otherwise
 	 */
 	public boolean isAvailable() {
-		return this.available && plugin() != null && plugin.isEnabled();
+		return available && plugin() != null && plugin.isEnabled();
 	}
 
 	@Override
 	public String getId() {
-		return this.id;
+		return id;
 	}
 
 	@Override

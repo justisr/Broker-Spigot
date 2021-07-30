@@ -38,7 +38,7 @@ public abstract class ItemBroker extends AbstractBroker<ItemStack> {
 		return ItemStack.class;
 	}
 
-	public String displayName(ItemStack item) {
+	public static String displayName(ItemStack item) {
 		return WordUtils.capitalize(item.getType().toString().replace("_", " "));
 	}
 
