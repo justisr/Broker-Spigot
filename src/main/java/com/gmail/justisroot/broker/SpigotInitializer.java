@@ -30,6 +30,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.gmail.justisroot.broker.commands.BrokerCommands;
 import com.gmail.justisroot.broker.defaults.AbstractBroker;
+import com.gmail.justisroot.broker.defaults.itemstack.CMIBroker;
 import com.gmail.justisroot.broker.defaults.itemstack.ClipAutoSellBroker;
 import com.gmail.justisroot.broker.defaults.itemstack.ConjurateShopBroker;
 import com.gmail.justisroot.broker.defaults.itemstack.EssentialsXBroker;
@@ -132,6 +133,7 @@ public final class SpigotInitializer extends JavaPlugin implements Listener {
 		register(new ClipAutoSellBroker()); // https://wiki.helpch.at/clips-plugins/autosell
 		register(new OneStopShopBroker()); // https://www.spigotmc.org/resources/76640/
 		register(new ZShopBroker()); // https://www.mc-market.org/resources/13376/
+		register(new CMIBroker()); // https://www.spigotmc.org/resources/3742/
 
 		// Register default org.bukkit.permissions.Permission Brokers
 		register(new BuyPermissionsBroker()); // https://www.spigotmc.org/resources/52557/
