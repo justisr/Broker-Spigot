@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -40,6 +39,9 @@ import net.brcdev.shopgui.ShopGuiPlusApi;
 import net.brcdev.shopgui.shop.ShopItem;
 import net.brcdev.shopgui.sound.SoundAction;
 
+/**
+ * Respects item permissions, sends configured commands, and plays buy/sell sounds on transaction complete.
+ */
 public final class ShopGUIPlusBroker extends ItemBroker {
 
 	private ShopGuiPlugin plugin;
@@ -57,19 +59,12 @@ public final class ShopGUIPlusBroker extends ItemBroker {
 
 	@Override
 	public boolean canBeBought(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		if (!handlesPurchases(playerID, worldID, item)) return false;
-		Player player = Bukkit.getPlayer(playerID.get());
-		if (player == null) return false;
-		if (ShopGuiPlusApi.getItemStackPriceBuy(player, item) > 0) return true;
-		return false;
+		return getBuyPrice(playerID, worldID, item, 1).isPresent();
 	}
 
 	@Override
 	public boolean canBeSold(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		if (!handlesPurchases(playerID, worldID, item)) return false;
-		Player player = Bukkit.getPlayer(playerID.get());
-		if (ShopGuiPlusApi.getItemStackPriceSell(player, item) > 0) return true;
-		return false;
+		return getSellPrice(playerID, worldID, item, 1).isPresent();
 	}
 
 	@Override
@@ -77,9 +72,11 @@ public final class ShopGUIPlusBroker extends ItemBroker {
 		if (playerID.isEmpty()) return Optional.empty();
 		Player player = Bukkit.getPlayer(playerID.get());
 		if (player == null) return Optional.empty();
-		BigDecimal value = new BigDecimal(ShopGuiPlusApi.getItemStackPriceBuy(player, item));
-		if (value.doubleValue() <= 0) return Optional.empty();
-		return Optional.of(value.multiply(new BigDecimal(amount)));
+		double value = ShopGuiPlusApi.getItemStackPriceBuy(player, item);
+		if (value <= 0) return Optional.empty();
+		ShopItem shopItem = ShopGuiPlusApi.getItemStackShopItem(player, item);
+		if (!shopItem.hasRequiredPermissions(player)) return Optional.empty();
+		return Optional.of(new BigDecimal(value * amount));
 	}
 
 	@Override
@@ -87,21 +84,21 @@ public final class ShopGUIPlusBroker extends ItemBroker {
 		if (playerID.isEmpty()) return Optional.empty();
 		Player player = Bukkit.getPlayer(playerID.get());
 		if (player == null) return Optional.empty();
-		BigDecimal value = new BigDecimal(ShopGuiPlusApi.getItemStackPriceSell(player, item));
-		if (value.doubleValue() <= 0) return Optional.empty();
-		return Optional.of(value.multiply(new BigDecimal(amount)));
+		double value = ShopGuiPlusApi.getItemStackPriceSell(player, item);
+		if (value <= 0) return Optional.empty();
+		ShopItem shopItem = ShopGuiPlusApi.getItemStackShopItem(player, item);
+		if (!shopItem.hasRequiredPermissions(player)) return Optional.empty();
+		return Optional.of(new BigDecimal(value * amount));
 	}
 
 	@Override
 	public TransactionRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startPurchase(this, item, playerID, worldID).setVolume(amount);
-		if (!canBeBought(playerID, worldID, item)) return builder.buildFailure(NO_PERMISSION);
-		Optional<BigDecimal> buyPrice = getBuyPrice(playerID, worldID, item, amount);
-		if (buyPrice.isEmpty()) return builder.buildFailure(NO_PERMISSION);
+		Optional<BigDecimal> value = getBuyPrice(playerID, worldID, item, amount);
+		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
 		Player player = Bukkit.getPlayer(playerID.get());
 		ShopItem shopItem = ShopGuiPlusApi.getItemStackShopItem(player, item);
-		if (!shopItem.hasRequiredPermissions(player)) return builder.buildFailure(NO_PERMISSION);
-		return builder.setValue(buyPrice.get()).buildSuccess(() -> {
+		return builder.setValue(value.get()).buildSuccess(() -> {
 			plugin.getSoundManager().playSound(player, SoundAction.BUY_ITEM);
 			for (String command : shopItem.getCommandsOnBuyConsole()) sendCommand(Bukkit.getConsoleSender(), command, player, amount);
 			for (String command : shopItem.getCommandsOnBuy()) sendCommand(player, command, player, amount);
@@ -111,13 +108,12 @@ public final class ShopGUIPlusBroker extends ItemBroker {
 	@Override
 	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
-		if (!canBeBought(playerID, worldID, item)) return builder.buildFailure(NO_PERMISSION);
-		Optional<BigDecimal> sellPrice = getSellPrice(playerID, worldID, item, amount);
-		if (sellPrice.isEmpty()) return builder.buildFailure(NO_PERMISSION);
+		Optional<BigDecimal> value = getSellPrice(playerID, worldID, item, amount);
+		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
 		Player player = Bukkit.getPlayer(playerID.get());
 		ShopItem shopItem = ShopGuiPlusApi.getItemStackShopItem(player, item);
 		if (!shopItem.hasRequiredPermissions(player)) return builder.buildFailure(NO_PERMISSION);
-		return builder.setValue(sellPrice.get()).buildSuccess(() -> {
+		return builder.setValue(value.get()).buildSuccess(() -> {
 			plugin.getSoundManager().playSound(player, SoundAction.SELL_ITEM);
 			for (String command : shopItem.getCommandsOnSellConsole()) sendCommand(Bukkit.getConsoleSender(), command, player, amount);
 			for (String command : shopItem.getCommandsOnSell()) sendCommand(player, command, player, amount);
@@ -130,25 +126,17 @@ public final class ShopGUIPlusBroker extends ItemBroker {
 
 	@Override
 	public String getDisplayName(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return WordUtils.capitalize(item.getType().toString().replace("_", " "));
+		return displayName(item);
 	}
 
 	@Override
 	public boolean handlesPurchases(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		if (playerID.isEmpty()) return false;
-		Player player = Bukkit.getPlayer(playerID.get());
-		if (player == null) return false;
-		if (ShopGuiPlusApi.getItemStackShopItem(player, item) != null) return true;
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean handlesSales(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		if (playerID.isEmpty()) return false;
-		Player player = Bukkit.getPlayer(playerID.get());
-		if (player == null) return false;
-		if (ShopGuiPlusApi.getItemStackShopItem(player, item) != null) return true;
-		return false;
+		return true;
 	}
 
 }

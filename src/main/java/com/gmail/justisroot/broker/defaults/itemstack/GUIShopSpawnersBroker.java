@@ -45,7 +45,8 @@ import me.Darrionat.GUIShopSpawners.GuiShopSpawners;
 import me.Darrionat.GUIShopSpawners.Maps;
 
 /**
- * Only handles the transaction of spawners
+ * Only handles the transaction of spawners.<br>
+ * Requires a reload to fetch new prices.
  */
 public final class GUIShopSpawnersBroker extends ItemBroker {
 
@@ -81,20 +82,12 @@ public final class GUIShopSpawnersBroker extends ItemBroker {
 
 	@Override
 	public boolean canBeBought(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		if (item.getType() != Material.SPAWNER) return false;
-		Optional<String> type = spawnerType(item);
-		if (type.isEmpty()) return false;
-		BigDecimal value = buyPrices.get(type.get());
-		return value != null && value.doubleValue() > 0;
+		return getBuyPrice(playerID, worldID, item, 1).isPresent();
 	}
 
 	@Override
 	public boolean canBeSold(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		if (item.getType() != Material.SPAWNER) return false;
-		Optional<String> type = spawnerType(item);
-		if (type.isEmpty()) return false;
-		BigDecimal value = sellPrices.get(type.get());
-		return value != null && value.doubleValue() > 0;
+		return getSellPrice(playerID, worldID, item, 1).isPresent();
 	}
 
 	@Override
@@ -119,24 +112,18 @@ public final class GUIShopSpawnersBroker extends ItemBroker {
 
 	@Override
 	public TransactionRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
-		if (item.getType() != Material.SPAWNER) return builder.buildFailure(NO_PERMISSION);
-		Optional<String> type = spawnerType(item);
-		if (type.isEmpty()) return builder.buildFailure(NO_PERMISSION);
-		BigDecimal value = buyPrices.get(type.get());
-		if (value == null || value.doubleValue() <= 0) return builder.buildFailure(NO_PERMISSION);
-		return builder.setValue(value).buildSuccess(null);
+		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startPurchase(this, item, playerID, worldID).setVolume(amount);
+		Optional<BigDecimal> value = getBuyPrice(playerID, worldID, item, amount);
+		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
+		return builder.setValue(value.get()).buildSuccess();
 	}
 
 	@Override
 	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
-		if (item.getType() != Material.SPAWNER) return builder.buildFailure(NO_PERMISSION);
-		Optional<String> type = spawnerType(item);
-		if (type.isEmpty()) return builder.buildFailure(NO_PERMISSION);
-		BigDecimal value = sellPrices.get(type.get());
-		if (value == null || value.doubleValue() <= 0) return builder.buildFailure(NO_PERMISSION);
-		return builder.setValue(value).buildSuccess(null);
+		Optional<BigDecimal> value = getSellPrice(playerID, worldID, item, amount);
+		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
+		return builder.setValue(value.get()).buildSuccess();
 	}
 
 	@Override

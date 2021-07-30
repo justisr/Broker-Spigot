@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.inventory.ItemStack;
 
 import com.gmail.justisroot.broker.TransactionRecord;
@@ -59,35 +58,35 @@ public class OneStopShopBroker extends ItemBroker {
 	public Optional<BigDecimal> getBuyPrice(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		double value = ((OneStopShop)plugin()).getApi().getItemBuyValue(item);
 		if (value <= 0) return Optional.empty();
-		return Optional.of(new BigDecimal(value));
+		return Optional.of(new BigDecimal(value * amount));
 	}
 
 	@Override
 	public Optional<BigDecimal> getSellPrice(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		double value = ((OneStopShop)plugin()).getApi().getItemSellValue(item);
 		if (value <= 0) return Optional.empty();
-		return Optional.of(new BigDecimal(value));
+		return Optional.of(new BigDecimal(value * amount));
 	}
 
 	@Override
 	public TransactionRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startPurchase(this, item, playerID, worldID).setVolume(amount);
-		Optional<BigDecimal> buyPrice = getBuyPrice(playerID, worldID, item, amount);
-		if (buyPrice.isEmpty()) return builder.buildFailure(NO_PERMISSION);
-		return builder.setValue(buyPrice.get()).buildSuccess();
+		Optional<BigDecimal> value = getBuyPrice(playerID, worldID, item, amount);
+		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
+		return builder.setValue(value.get()).buildSuccess();
 	}
 
 	@Override
 	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
-		Optional<BigDecimal> sellPrice = getSellPrice(playerID, worldID, item, amount);
-		if (sellPrice.isEmpty()) return builder.buildFailure(NO_PERMISSION);
-		return builder.setValue(sellPrice.get()).buildSuccess();
+		Optional<BigDecimal> value = getSellPrice(playerID, worldID, item, amount);
+		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
+		return builder.setValue(value.get()).buildSuccess();
 	}
 
 	@Override
 	public String getDisplayName(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return WordUtils.capitalize(item.getType().toString().replace("_", " "));
+		return displayName(item);
 	}
 
 	@Override

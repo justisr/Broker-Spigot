@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -65,15 +64,7 @@ public final class ClipAutoSellBroker extends ItemBroker {
 
 	@Override
 	public boolean canBeSold(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		if (playerID.isEmpty()) return false;
-		Player player = Bukkit.getPlayer(playerID.get());
-		if (player == null) return false;
-		Shop shop = SellHandler.getShop(player);
-		if (shop == null && plugin.getOptions().sellAllFallbackToPermShop())
-			shop = SellHandler.getPermShop(player);
-		if (shop == null) return false;
-		if (!shop.getPrices().containsKey(item)) return false;
-		return shop.getPrices().get(item) > 0;
+		return getSellPrice(playerID, worldID, item, 1).isPresent();
 	}
 
 	@Override
@@ -96,7 +87,7 @@ public final class ClipAutoSellBroker extends ItemBroker {
 			ItemStack converted = compare.getKey().clone();
 			Material convertedMat = Bukkit.getUnsafe().fromLegacy(converted.getType());
 			if (convertedMat != converted.getType()) converted.setType(convertedMat);
-			if (item.equals(converted)) return Optional.of(new BigDecimal(compare.getValue()));
+			if (item.equals(converted)) return Optional.of(new BigDecimal(compare.getValue() * amount));
 		}
 		return Optional.empty();
 	}
@@ -109,15 +100,14 @@ public final class ClipAutoSellBroker extends ItemBroker {
 	@Override
 	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
-		if (!canBeSold(playerID, worldID, item)) return builder.buildFailure(NO_PERMISSION);
-		Optional<BigDecimal> sellPrice = getSellPrice(playerID, worldID, item, amount);
-		if (sellPrice.isEmpty()) return builder.buildFailure(NO_PERMISSION);
-		return builder.setValue(sellPrice.get()).buildSuccess(null);
+		Optional<BigDecimal> value = getSellPrice(playerID, worldID, item, amount);
+		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
+		return builder.setValue(value.get()).buildSuccess(null);
 	}
 
 	@Override
 	public String getDisplayName(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return WordUtils.capitalize(item.getType().toString().replace("_", " "));
+		return displayName(item);
 	}
 
 	@Override
@@ -126,22 +116,8 @@ public final class ClipAutoSellBroker extends ItemBroker {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public boolean handlesSales(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		if (playerID.isEmpty()) return false;
-		Player player = Bukkit.getPlayer(playerID.get());
-		if (player == null) return false;
-		Shop shop = SellHandler.getShop(player);
-		if (shop == null && plugin.getOptions().sellAllFallbackToPermShop())
-			shop = SellHandler.getPermShop(player);
-		if (shop == null) return false;
-		for (ItemStack compare : shop.getPrices().keySet()) {
-			ItemStack converted = compare.clone();
-			Material convertedMat = Bukkit.getUnsafe().fromLegacy(converted.getType());
-			if (convertedMat != converted.getType()) converted.setType(convertedMat);
-			if (item.equals(converted)) return true;
-		}
-		return false;
+		return true;
 	}
 
 }

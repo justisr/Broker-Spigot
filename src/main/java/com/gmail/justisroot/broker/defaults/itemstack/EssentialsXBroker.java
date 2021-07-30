@@ -58,7 +58,7 @@ public final class EssentialsXBroker extends ItemBroker {
 
 	@Override
 	public boolean canBeSold(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return def.getPrice(item) != null;
+		return getSellPrice(playerID, worldID, item, 1).isPresent();
 	}
 
 	@Override
@@ -81,10 +81,9 @@ public final class EssentialsXBroker extends ItemBroker {
 	@Override
 	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
 		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
-		if (!canBeSold(playerID, worldID, item)) return builder.buildFailure(NO_PERMISSION);
-		Optional<BigDecimal> sellPrice = getSellPrice(playerID, worldID, item, amount);
-		if (sellPrice.isEmpty()) return builder.buildFailure(NO_PERMISSION);
-		return builder.setValue(sellPrice.get()).buildSuccess(null);
+		Optional<BigDecimal> value = getSellPrice(playerID, worldID, item, amount);
+		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
+		return builder.setValue(value.get()).buildSuccess(null);
 	}
 
 	@Override

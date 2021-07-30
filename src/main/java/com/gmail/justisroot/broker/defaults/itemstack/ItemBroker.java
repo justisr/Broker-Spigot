@@ -22,6 +22,7 @@
  */
 package com.gmail.justisroot.broker.defaults.itemstack;
 
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.inventory.ItemStack;
 
 import com.gmail.justisroot.broker.defaults.AbstractBroker;
@@ -35,6 +36,10 @@ public abstract class ItemBroker extends AbstractBroker<ItemStack> {
 	@Override
 	public Class<ItemStack> getType() {
 		return ItemStack.class;
+	}
+
+	public String displayName(ItemStack item) {
+		return WordUtils.capitalize(item.getType().toString().replace("_", " "));
 	}
 
 }

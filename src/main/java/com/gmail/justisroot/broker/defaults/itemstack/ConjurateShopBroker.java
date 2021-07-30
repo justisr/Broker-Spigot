@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.inventory.ItemStack;
 
 import com.gmail.justisroot.broker.TransactionRecord;
@@ -66,10 +65,9 @@ public final class ConjurateShopBroker extends ItemBroker {
 
 	@Override
 	public Optional<BigDecimal> getSellPrice(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		if (!canBeSold(playerID, worldID, item)) return Optional.empty();
-		double value = Manager.get().getWorth(item) * amount;
+		double value = Manager.get().getWorth(item);
 		if (value <= 0) return Optional.empty();
-		return Optional.of(new BigDecimal(value));
+		return Optional.of(new BigDecimal(value * amount));
 	}
 
 	@Override
@@ -79,16 +77,15 @@ public final class ConjurateShopBroker extends ItemBroker {
 
 	@Override
 	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> record = TransactionRecord.startPurchase(this, item, playerID, worldID).setVolume(amount);
-		if (!canBeSold(playerID, worldID, item)) return record.buildFailure(NO_PERMISSION);
-		Optional<BigDecimal> sellPrice = getSellPrice(playerID, worldID, item, amount);
-		if (sellPrice.isEmpty()) return record.buildFailure(NO_PERMISSION);
-		return record.setValue(sellPrice.get()).buildSuccess(null);
+		TransactionRecordBuilder<ItemStack> record = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
+		Optional<BigDecimal> value = getSellPrice(playerID, worldID, item, amount);
+		if (value.isEmpty()) return record.buildFailure(NO_PERMISSION);
+		return record.setValue(value.get()).buildSuccess(null);
 	}
 
 	@Override
 	public String getDisplayName(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return WordUtils.capitalize(item.getType().toString().replace("_", " "));
+		return displayName(item);
 	}
 
 	@Override

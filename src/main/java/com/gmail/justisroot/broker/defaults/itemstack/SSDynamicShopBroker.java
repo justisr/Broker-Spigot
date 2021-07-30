@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -59,14 +58,12 @@ public final class SSDynamicShopBroker extends ItemBroker {
 
 	@Override
 	public boolean canBeBought(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		Optional<BigDecimal> buyPrice = getBuyPrice(playerID, worldID, item, 1);
-		return buyPrice.isPresent();
+		return getBuyPrice(playerID, worldID, item, 1).isPresent();
 	}
 
 	@Override
 	public boolean canBeSold(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		Optional<BigDecimal> sellPrice = getSellPrice(playerID, worldID, item, 1);
-		return sellPrice.isPresent();
+		return getSellPrice(playerID, worldID, item, 1).isPresent();
 	}
 
 	@Override
@@ -75,11 +72,11 @@ public final class SSDynamicShopBroker extends ItemBroker {
 		if (shop == null) return Optional.empty();
 		int index = ShopUtil.findItemFromShop(shop, item);
 		if (index < 0) return Optional.empty();
-		double price = buyPrice(shop, index, amount);
-		if (price <= 0) return Optional.empty();
+		double value = buyPrice(shop, index, amount);
+		if (value <= 0) return Optional.empty();
 		int stock = stock(shop, item, index);
-		if (stock > 0 && stock < amount) return Optional.empty();
-		return Optional.of(new BigDecimal(price));
+		if (stock > 0 && stock <= amount) return Optional.empty();
+		return Optional.of(new BigDecimal(value));
 	}
 
 	@Override
@@ -88,25 +85,25 @@ public final class SSDynamicShopBroker extends ItemBroker {
 		if (shop == null) return Optional.empty();
 		int index = ShopUtil.findItemFromShop(shop, item);
 		if (index < 0) return Optional.empty();
-		double price = sellPrice(shop, index, amount);
-		if (price <= 0) return Optional.empty();
+		double value = sellPrice(shop, index, amount);
+		if (value <= 0) return Optional.empty();
 		int stock = stock(shop, item, index);
 		if (stock > 0 && stock <= amount) return Optional.empty();
-		return Optional.of(new BigDecimal(price));
+		return Optional.of(new BigDecimal(value));
 	}
 
 	@Override
 	public TransactionRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> record = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
+		TransactionRecordBuilder<ItemStack> record = TransactionRecord.startPurchase(this, item, playerID, worldID).setVolume(amount);
 		String shop = getShopItems().get(item);
 		int index = ShopUtil.findItemFromShop(shop, item);
 		if (shop == null) return record.buildFailure(NO_PERMISSION);
-		double price = buyPrice(shop, index, amount);
-		if (price <= 0) return record.buildFailure(NO_PERMISSION);
+		double value = buyPrice(shop, index, amount);
+		if (value <= 0) return record.buildFailure(NO_PERMISSION);
 		int stock = stock(shop, item, index);
 		if (stock > 0 && stock <= amount) return record.buildFailure(NO_PERMISSION);
-		return record.setValue(new BigDecimal(price)).buildSuccess(() -> {
-			buy(item, amount, shop, index, stock, price);
+		return record.setValue(new BigDecimal(value)).buildSuccess(() -> {
+			buy(item, amount, shop, index, stock, value);
 			if (playerID.isEmpty()) return;
 			Player player = Bukkit.getPlayer(playerID.get());
 			if (player != null) SoundUtil.playerSoundEffect(player, "buy");
@@ -115,16 +112,16 @@ public final class SSDynamicShopBroker extends ItemBroker {
 
 	@Override
 	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> record = TransactionRecord.startPurchase(this, item, playerID, worldID).setVolume(amount);
+		TransactionRecordBuilder<ItemStack> record = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
 		String shop = getShopItems().get(item);
 		int index = ShopUtil.findItemFromShop(shop, item);
 		if (shop == null) return record.buildFailure(NO_PERMISSION);
-		double price = sellPrice(shop, index, amount);
-		if (price <= 0) return record.buildFailure(NO_PERMISSION);
+		double value = sellPrice(shop, index, amount);
+		if (value <= 0) return record.buildFailure(NO_PERMISSION);
 		int stock = stock(shop, item, index);
-		if (stock > 0 && stock < amount) return record.buildFailure(NO_PERMISSION);
-		return record.setValue(new BigDecimal(price)).buildSuccess(() -> {
-			sell(item, amount, shop, index, stock, price);
+		if (stock > 0 && stock <= amount) return record.buildFailure(NO_PERMISSION);
+		return record.setValue(new BigDecimal(value)).buildSuccess(() -> {
+			sell(item, amount, shop, index, stock, value);
 			if (playerID.isEmpty()) return;
 			Player player = Bukkit.getPlayer(playerID.get());
 			if (player != null) SoundUtil.playerSoundEffect(player, "sell");
@@ -189,17 +186,17 @@ public final class SSDynamicShopBroker extends ItemBroker {
 
 	@Override
 	public String getDisplayName(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return WordUtils.capitalize(item.getType().toString().replace("_", " "));
+		return displayName(item);
 	}
 
 	@Override
 	public boolean handlesPurchases(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return getShopItems().get(item) != null;
+		return true;
 	}
 
 	@Override
 	public boolean handlesSales(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item) {
-		return getShopItems().get(item) != null;
+		return true;
 	}
 
 }
