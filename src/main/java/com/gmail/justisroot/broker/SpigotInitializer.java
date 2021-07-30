@@ -35,6 +35,7 @@ import com.gmail.justisroot.broker.defaults.itemstack.ConjurateShopBroker;
 import com.gmail.justisroot.broker.defaults.itemstack.EssentialsXBroker;
 import com.gmail.justisroot.broker.defaults.itemstack.GUIShopBroker;
 import com.gmail.justisroot.broker.defaults.itemstack.GUIShopSpawnersBroker;
+import com.gmail.justisroot.broker.defaults.itemstack.OneStopShopBroker;
 import com.gmail.justisroot.broker.defaults.itemstack.SSDynamicShopBroker;
 import com.gmail.justisroot.broker.defaults.itemstack.ShopGUIPlusBroker;
 import com.gmail.justisroot.broker.defaults.permission.BuyPermissionsBroker;
@@ -128,6 +129,7 @@ public final class SpigotInitializer extends JavaPlugin implements Listener {
 		register(new SSDynamicShopBroker()); // https://www.spigotmc.org/resources/65603/
 		register(new GUIShopSpawnersBroker()); // https://www.spigotmc.org/resources/69279/
 		register(new ClipAutoSellBroker()); // https://wiki.helpch.at/clips-plugins/autosell
+		register(new OneStopShopBroker()); // https://www.spigotmc.org/resources/76640/
 
 		// Register default org.bukkit.permissions.Permission Brokers
 		register(new BuyPermissionsBroker()); // https://www.spigotmc.org/resources/52557/
