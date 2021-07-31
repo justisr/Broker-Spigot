@@ -37,15 +37,28 @@ public abstract class AbstractBroker<T> implements Broker<T> {
 
 	protected AbstractBroker(String required, String... packages) {
 		try {
+			// Validate required packages exist
 			Class.forName(required);
 			for (String p : packages)
 				Class.forName(p);
+
 			available = true;
 		} catch (Exception e) {
 			available = false;
 		}
-		String name = Thread.currentThread().getStackTrace()[3].getClassName(); // only works for children of child classes
-		this.id = name.substring(name.lastIndexOf('.') + 1); // identify the Broker implementation by ItemBroker's implementing class name
+
+		// Set the ID of this Broker to the class name of the farthest implemented descendant
+		Class<?> clazz = null;
+		StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+		for (int i = 1; i < trace.length; i++) {
+			try {
+				Class<?> checkClazz = Class.forName(trace[i].getClassName());
+				if (checkClazz.isInstance(this)) clazz = checkClazz;
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		this.id = clazz.getName().substring(clazz.getName().lastIndexOf('.') + 1);
 	}
 
 	public Plugin plugin() {
