@@ -30,8 +30,10 @@ import org.bukkit.inventory.ItemStack;
 
 import com.Zrips.CMI.CMI;
 import com.Zrips.CMI.Modules.Worth.WorthItem;
-import com.gmail.justisroot.broker.TransactionRecord;
-import com.gmail.justisroot.broker.TransactionRecord.TransactionRecordBuilder;
+import com.gmail.justisroot.broker.record.PurchaseRecord;
+import com.gmail.justisroot.broker.record.PurchaseRecord.PurchaseRecordBuilder;
+import com.gmail.justisroot.broker.record.SaleRecord;
+import com.gmail.justisroot.broker.record.SaleRecord.SaleRecordBuilder;
 
 public class CMIBroker extends ItemBroker {
 
@@ -73,16 +75,16 @@ public class CMIBroker extends ItemBroker {
 	}
 
 	@Override
-	public TransactionRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> record = TransactionRecord.startPurchase(this, item, playerID, worldID).setVolume(amount);
+	public PurchaseRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
+		PurchaseRecordBuilder<ItemStack> record = PurchaseRecord.start(this, item, playerID, worldID).setVolume(amount);
 		Optional<BigDecimal> value = getBuyPrice(playerID, worldID, item, amount);
 		if (value.isEmpty()) return record.buildFailure(NO_PERMISSION);
 		return record.setValue(value.get()).buildSuccess();
 	}
 
 	@Override
-	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> record = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
+	public SaleRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
+		SaleRecordBuilder<ItemStack> record = SaleRecord.start(this, item, playerID, worldID).setVolume(amount);
 		Optional<BigDecimal> value = getSellPrice(playerID, worldID, item, amount);
 		if (value.isEmpty()) return record.buildFailure(NO_PERMISSION);
 		return record.setValue(value.get()).buildSuccess();

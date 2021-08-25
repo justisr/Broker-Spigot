@@ -26,23 +26,23 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 
 import com.gmail.justisroot.broker.BrokerInfo;
-import com.gmail.justisroot.broker.PreProcessTransactionRecord;
+import com.gmail.justisroot.broker.record.PreProcessSaleRecord;
 
-public class TransactionPreProcessEvent extends BrokerEvent implements Cancellable {
+public class SalePreProcessEvent extends BrokerEvent implements Cancellable {
 
-	private final PreProcessTransactionRecord record;
+	private final PreProcessSaleRecord record;
 	private boolean cancelled;
 
-	public TransactionPreProcessEvent(BrokerInfo info, PreProcessTransactionRecord record) {
+	public SalePreProcessEvent(BrokerInfo info, PreProcessSaleRecord record) {
 		super(info);
 		this.record = record;
 	}
 
 	/**
-	 * Get the PreProcessTransactionRecord for this transaction<br>
-	 * @return a PreProcessTransactionRecord for this transaction
+	 * Get the PreProcessSaleRecord for this transaction<br>
+	 * @return a PreProcessSaleRecord for this transaction
 	 */
-	public PreProcessTransactionRecord getRecord() {
+	public PreProcessSaleRecord getRecord() {
 		return this.record;
 	}
 

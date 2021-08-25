@@ -28,8 +28,10 @@ import java.util.UUID;
 
 import org.bukkit.inventory.ItemStack;
 
-import com.gmail.justisroot.broker.TransactionRecord;
-import com.gmail.justisroot.broker.TransactionRecord.TransactionRecordBuilder;
+import com.gmail.justisroot.broker.record.PurchaseRecord;
+import com.gmail.justisroot.broker.record.PurchaseRecord.PurchaseRecordBuilder;
+import com.gmail.justisroot.broker.record.SaleRecord;
+import com.gmail.justisroot.broker.record.SaleRecord.SaleRecordBuilder;
 import com.pablo67340.guishop.api.GuiShopAPI;
 
 /**
@@ -69,8 +71,8 @@ public final class GUIShopBroker extends ItemBroker {
 	}
 
 	@Override
-	public TransactionRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startPurchase(this, item, playerID, worldID).setVolume(amount);
+	public PurchaseRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
+		PurchaseRecordBuilder<ItemStack> builder = PurchaseRecord.start(this, item, playerID, worldID).setVolume(amount);
 		if (!canBeBought(playerID, worldID, item)) return builder.buildFailure(NO_PERMISSION);
 		Optional<BigDecimal> value = getBuyPrice(playerID, worldID, item, amount);
 		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
@@ -78,8 +80,8 @@ public final class GUIShopBroker extends ItemBroker {
 	}
 
 	@Override
-	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
+	public SaleRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
+		SaleRecordBuilder<ItemStack> builder = SaleRecord.start(this, item, playerID, worldID).setVolume(amount);
 		if (!canBeSold(playerID, worldID, item)) return builder.buildFailure(NO_PERMISSION);
 		Optional<BigDecimal> value = getSellPrice(playerID, worldID, item, amount);
 		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);

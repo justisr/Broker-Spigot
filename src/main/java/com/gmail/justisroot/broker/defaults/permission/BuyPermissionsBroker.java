@@ -32,8 +32,9 @@ import java.util.UUID;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.permissions.Permission;
 
-import com.gmail.justisroot.broker.TransactionRecord;
-import com.gmail.justisroot.broker.TransactionRecord.TransactionRecordBuilder;
+import com.gmail.justisroot.broker.record.PurchaseRecord;
+import com.gmail.justisroot.broker.record.PurchaseRecord.PurchaseRecordBuilder;
+import com.gmail.justisroot.broker.record.SaleRecord;
 
 import me.glaremasters.buypermissions.BuyPermissions;
 
@@ -83,8 +84,8 @@ public final class BuyPermissionsBroker extends PermissionBroker {
 	}
 
 	@Override
-	public TransactionRecord<Permission> buy(Optional<UUID> playerID, Optional<UUID> worldID, Permission permission, int amount) {
-		TransactionRecordBuilder<Permission> record = TransactionRecord.startPurchase(this, permission, playerID, worldID).setVolume(amount);
+	public PurchaseRecord<Permission> buy(Optional<UUID> playerID, Optional<UUID> worldID, Permission permission, int amount) {
+		PurchaseRecordBuilder<Permission> record = PurchaseRecord.start(this, permission, playerID, worldID).setVolume(amount);
 		if (!canBeSold(playerID, worldID, permission)) return record.buildFailure(NO_PERMISSION);
 		Optional<BigDecimal> buyPrice = getBuyPrice(playerID, worldID, permission, amount);
 		if (buyPrice.isEmpty()) return record.buildFailure(NO_PERMISSION);
@@ -92,8 +93,8 @@ public final class BuyPermissionsBroker extends PermissionBroker {
 	}
 
 	@Override
-	public TransactionRecord<Permission> sell(Optional<UUID> playerID, Optional<UUID> worldID, Permission permission, int amount) {
-		return TransactionRecord.startPurchase(this, permission, playerID, worldID).setVolume(amount).buildFailure(NO_PERMISSION);
+	public SaleRecord<Permission> sell(Optional<UUID> playerID, Optional<UUID> worldID, Permission permission, int amount) {
+		return SaleRecord.start(this, permission, playerID, worldID).setVolume(amount).buildFailure(NO_PERMISSION);
 	}
 
 	@Override

@@ -20,7 +20,8 @@ import java.util.UUID;
 
 import org.bukkit.permissions.Permission;
 
-import com.gmail.justisroot.broker.TransactionRecord;
+import com.gmail.justisroot.broker.record.PurchaseRecord;
+import com.gmail.justisroot.broker.record.SaleRecord;
 
 /**
  * Waiting on response from author before implementing
@@ -57,13 +58,13 @@ public final class PermissionShopZBroker extends PermissionBroker {
 	}
 
 	@Override
-	public TransactionRecord<Permission> buy(Optional<UUID> playerID, Optional<UUID> worldID, Permission permission, int amount) {
-		return TransactionRecord.startPurchase(this, permission, playerID, worldID).setVolume(amount).buildFailure(NO_PERMISSION);
+	public PurchaseRecord<Permission> buy(Optional<UUID> playerID, Optional<UUID> worldID, Permission permission, int amount) {
+		return PurchaseRecord.start(this, permission, playerID, worldID).setVolume(amount).buildFailure(NO_PERMISSION);
 	}
 
 	@Override
-	public TransactionRecord<Permission> sell(Optional<UUID> playerID, Optional<UUID> worldID, Permission permission, int amount) {
-		return TransactionRecord.startPurchase(this, permission, playerID, worldID).setVolume(amount).buildFailure(NO_PERMISSION);
+	public SaleRecord<Permission> sell(Optional<UUID> playerID, Optional<UUID> worldID, Permission permission, int amount) {
+		return SaleRecord.start(this, permission, playerID, worldID).setVolume(amount).buildFailure(NO_PERMISSION);
 	}
 
 	@Override

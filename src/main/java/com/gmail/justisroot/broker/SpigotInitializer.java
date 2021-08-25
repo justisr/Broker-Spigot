@@ -25,7 +25,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.gmail.justisroot.broker.commands.BrokerCommands;
@@ -41,21 +40,17 @@ import com.gmail.justisroot.broker.defaults.itemstack.SSDynamicShopBroker;
 import com.gmail.justisroot.broker.defaults.itemstack.ShopGUIPlusBroker;
 import com.gmail.justisroot.broker.defaults.itemstack.ZShopBroker;
 import com.gmail.justisroot.broker.defaults.permission.BuyPermissionsBroker;
-import com.gmail.justisroot.broker.events.BrokerRegistrationEvent;
-import com.gmail.justisroot.broker.events.BrokerUnregistrationEvent;
-import com.gmail.justisroot.broker.events.TransactionEvent;
-import com.gmail.justisroot.broker.events.TransactionPreProcessEvent;
+import com.gmail.justisroot.broker.events.EventCreator;
 import com.google.common.collect.Sets;
 
 public final class SpigotInitializer extends JavaPlugin implements Listener {
 
 	private final BrokerAPI api = new BrokerAPI(new Config(this.getDataFolder()));
-
 	private final Map<Plugin, AbstractBroker<?>> defaults = new HashMap<>();
 
 	@Override
 	public void onEnable() {
-		registerEvents();
+		EventCreator.registerEvents();
 		registerCommands();
 		registerCharts(new Metrics(this, 10492));
 		this.getServer().getPluginManager().registerEvents(this, this);
@@ -90,18 +85,6 @@ public final class SpigotInitializer extends JavaPlugin implements Listener {
 			} else available.put(i.get().getProvider(), Sets.newHashSet(i.get().getId()));
 		}
 		return available;
-	}
-
-	private final void registerEvents() {
-		PluginManager pm = Bukkit.getPluginManager();
-		api.eventService().setRegistrationHandler(info -> pm.callEvent(new BrokerRegistrationEvent(info)));
-		api.eventService().setUnregistrationHandler(info -> pm.callEvent(new BrokerUnregistrationEvent(info)));
-		api.eventService().setTransactionHandler((info, record) -> pm.callEvent(new TransactionEvent(info, record)));
-		api.eventService().setPreProcessTransactionHandler((info, record) -> {
-			TransactionPreProcessEvent event = new TransactionPreProcessEvent(info, record);
-			pm.callEvent(event);
-			return event.isCancelled();
-		});
 	}
 
 	private final void registerCommands() {

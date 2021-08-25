@@ -22,37 +22,30 @@
  */
 package com.gmail.justisroot.broker.events;
 
-import org.bukkit.event.HandlerList;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.PluginManager;
 
-import com.gmail.justisroot.broker.BrokerInfo;
-import com.gmail.justisroot.broker.TransactionRecord;
+public final class EventCreator {
 
-public class TransactionEvent extends BrokerEvent {
+	private EventCreator() { }
 
-	private final TransactionRecord<?> record;
-
-	public TransactionEvent(BrokerInfo info, TransactionRecord<?> record) {
-		super(info);
-		this.record = record;
-	}
-
-	/**
-	 * Get the TransactionRecord for this transaction event
-	 * @return the TransactionRecord for this transaction
-	 */
-	public TransactionRecord<?> getTransactionRecord() {
-		return this.record;
-	}
-
-	private static final HandlerList HANDLERS = new HandlerList();
-
-	@Override
-	public HandlerList getHandlers() {
-		return HANDLERS;
-	}
-
-	public static HandlerList getHandlerList() {
-		return HANDLERS;
+	public static final void registerEvents() {
+		PluginManager pm = Bukkit.getPluginManager();
+		BrokerEventService service = BrokerEventService.current();
+		service.setRegistrationHandler(info -> pm.callEvent(new BrokerRegistrationEvent(info)));
+		service.setUnregistrationHandler(info -> pm.callEvent(new BrokerUnregistrationEvent(info)));
+		service.setPurchaseHandler((info, record) -> pm.callEvent(new PurchaseEvent(info, record)));
+		service.setSaleHandler((info, record) -> pm.callEvent(new SaleEvent(info, record)));
+		service.setSalePreProcessHandler((info, record) -> {
+			SalePreProcessEvent event = new SalePreProcessEvent(info, record);
+			pm.callEvent(event);
+			return event.isCancelled();
+		});
+		service.setPurchasePreProcessHandler((info, record) -> {
+			PurchasePreProcessEvent event = new PurchasePreProcessEvent(info, record);
+			pm.callEvent(event);
+			return event.isCancelled();
+		});
 	}
 
 }

@@ -28,8 +28,9 @@ import java.util.UUID;
 
 import org.bukkit.inventory.ItemStack;
 
-import com.gmail.justisroot.broker.TransactionRecord;
-import com.gmail.justisroot.broker.TransactionRecord.TransactionRecordBuilder;
+import com.gmail.justisroot.broker.record.PurchaseRecord;
+import com.gmail.justisroot.broker.record.SaleRecord;
+import com.gmail.justisroot.broker.record.SaleRecord.SaleRecordBuilder;
 
 import conj.Shop.control.Manager;
 
@@ -71,13 +72,13 @@ public final class ConjurateShopBroker extends ItemBroker {
 	}
 
 	@Override
-	public TransactionRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		return TransactionRecord.startPurchase(this, item, playerID, worldID).setVolume(amount).buildFailure(NO_PERMISSION);
+	public PurchaseRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
+		return PurchaseRecord.start(this, item, playerID, worldID).setVolume(amount).buildFailure(NO_PERMISSION);
 	}
 
 	@Override
-	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> record = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
+	public SaleRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
+		SaleRecordBuilder<ItemStack> record = SaleRecord.start(this, item, playerID, worldID).setVolume(amount);
 		Optional<BigDecimal> value = getSellPrice(playerID, worldID, item, amount);
 		if (value.isEmpty()) return record.buildFailure(NO_PERMISSION);
 		return record.setValue(value.get()).buildSuccess(null);

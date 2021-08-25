@@ -30,8 +30,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-import com.gmail.justisroot.broker.TransactionRecord;
-import com.gmail.justisroot.broker.TransactionRecord.TransactionRecordBuilder;
+import com.gmail.justisroot.broker.record.PurchaseRecord;
+import com.gmail.justisroot.broker.record.PurchaseRecord.PurchaseRecordBuilder;
+import com.gmail.justisroot.broker.record.SaleRecord;
+import com.gmail.justisroot.broker.record.SaleRecord.SaleRecordBuilder;
 
 import fr.maxlego08.shop.api.InventoryManager;
 import fr.maxlego08.shop.api.button.buttons.ItemButton;
@@ -93,8 +95,8 @@ public class ZShopBroker extends ItemBroker {
 	}
 
 	@Override
-	public TransactionRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startPurchase(this, item, playerID, worldID).setVolume(amount);
+	public PurchaseRecord<ItemStack> buy(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
+		PurchaseRecordBuilder<ItemStack> builder = PurchaseRecord.start(this, item, playerID, worldID).setVolume(amount);
 		Optional<BigDecimal> value = getBuyPrice(playerID, worldID, item, amount);
 		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
 		return builder.setValue(value.get()).buildSuccess(() -> {
@@ -105,8 +107,8 @@ public class ZShopBroker extends ItemBroker {
 	}
 
 	@Override
-	public TransactionRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
-		TransactionRecordBuilder<ItemStack> builder = TransactionRecord.startSale(this, item, playerID, worldID).setVolume(amount);
+	public SaleRecord<ItemStack> sell(Optional<UUID> playerID, Optional<UUID> worldID, ItemStack item, int amount) {
+		SaleRecordBuilder<ItemStack> builder = SaleRecord.start(this, item, playerID, worldID).setVolume(amount);
 		Optional<BigDecimal> value = getSellPrice(playerID, worldID, item, amount);
 		if (value.isEmpty()) return builder.buildFailure(NO_PERMISSION);
 		return builder.setValue(value.get()).buildSuccess(() -> {
