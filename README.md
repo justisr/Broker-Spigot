@@ -29,25 +29,25 @@ Remember to wait until all plugins have loaded in and registered their implement
 As a caller attempting to buy/sell some in game items, you might create methods similar to the following for initiating transactions:
 ```java
 
-Optional<TransactionRecord<ItemStack>> buy(Player player, ItemStack item, int volume) {
+Optional<PurchaseRecord<ItemStack>> buy(Player player, ItemStack item, int volume) {
 	Optional<PurchaseMediator<ItemStack>> mediator = BrokerAPI.current().forPurchase(player.getUniqueId(), player.getWorld().getUID(), item);
 	if (mediator.isEmpty()) return Optional.empty(); // No broker installed for this data set
-	TransactionRecord<ItemStack> transaction = mediator.get().buy(volume); // runs the pre-transaction event
+	PurchaseRecord<ItemStack> transaction = mediator.get().buy(volume); // runs the PurchasePreProcessEvent
 	if (!transaction.isSuccess()) return Optional.of(transaction); // return the failed transaction
 	withdraw(player, transaction.value()); // <-- your own code
 	giveItems(player, item, transaction.volume()); // <-- your own code
-	transaction.complete(); // runs the post-transaction event and informs the Broker of the transaction's success
+	transaction.complete(); // runs the PurchaseEvent and performs the Broker implementation's completion process
 	return Optional.of(transaction); // return successful transaction, after having completed
 }
 
-Optional<TransactionRecord<ItemStack>> sell(Player player, ItemStack item, int volume) {
+Optional<SaleRecord<ItemStack>> sell(Player player, ItemStack item, int volume) {
 	Optional<SaleMediator<ItemStack>> mediator = BrokerAPI.current().forSale(player.getUniqueId(), player.getWorld().getUID(), item);
 	if (mediator.isEmpty()) return Optional.empty(); // No broker installed for this data set
-	TransactionRecord<ItemStack> transaction = mediator.get().sell(volume); // runs the pre-transaction event
+	SaleRecord<ItemStack> transaction = mediator.get().sell(volume); // runs the SalePreProcessEvent
 	if (!transaction.isSuccess()) return Optional.of(transaction); // return the failed transaction
-	deposit(player, transaction.value()); // <-- your own code
+	if (!transaction.isListing()) deposit(player, transaction.value()); // <-- your own code
 	takeItems(player, item, transaction.volume()); // <-- your own code
-	transaction.complete(); // runs the post-transaction event and informs the Broker of the transaction's success
+	transaction.complete(); // runs the SaleEvent and performs the Broker implementation's completion process
 	return Optional.of(transaction); // return successful transaction, after having completed
 }
 
@@ -70,11 +70,7 @@ If you need help with filling out your implementation, check out the defaults fo
 
 Only handle sales or only handles purchases? That's completely fine. Only handle specific ItemStacks like spawners or crops or ores? That's also fine. Simply indicate what you do and don't handle through the "handles" methods, and everything else will be passed on to the next priority Broker.
 
-Do not assume that because the buy or sell methods were run, that the transaction will complete. Even after returning your TransactionRecord, the transaction can still be cancelled by the caller or by a 3rd party listening on the `TransactionPreProcessEvent`. Any calls that assume the transaction has completed should be made within a runnable passed on:
-
-```
-TransactionRecordBuilder#buildSuccess(Runnable)
-```
+Do not assume that because the buy or sell methods were run, that the transaction will complete. Even after returning your TransactionRecord, the transaction can still be cancelled by the caller or by a 3rd party listening on the `PurchasePreProcessEvent` or `SalePreProcessEvent`. Any calls that assume the transaction has completed should be made within a runnable passed on `#buildSuccess(Runnable)`.
 
 This runnable will only be called once the transaction has been completed by the caller, and will only be run once. Use this for adjusting prices, logging transactions, playing sounds, etc.
 
